@@ -27,6 +27,6 @@ func initLCD() -> HD44780LCD {
 			print("INVALID CHECKSUM -- try again")
 		}
 	
-		sleep(30)		
+		sleep(10)		
 	}
 

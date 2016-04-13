@@ -27,7 +27,20 @@ public class DHT {
 		sched_setscheduler(0, SCHED_OTHER, &sched)
 	}
 
+
+	func binaryStringForNumber(number: UInt8) -> String {
+		return self.binaryStringForNumber(Int(number))
+	}
+
+	func binaryStringForNumber(number: Int) -> String {
+			let str = String(number, radix:2) //binary base
+			let padd = String(count: (8 - str.characters.count), repeatedValue: Character("0")) //repeat a character
+			return String(padd + str)
+	}
+
 	func read(debug: Bool = false) throws -> (temperature: Double, humidity: Double) {
+
+		if debug { print("----------------------------------")}
 
 		// Number of bit pulses to expect from the DHT.  Note that this is 41 because
 		// the first pulse is a constant 50 microsecond pulse, with 40 pulses to represent
@@ -96,47 +109,43 @@ public class DHT {
 			}
 		}
 
+		// HACK
 		highPulseTimes[0] = 0
 
 		// Done with timing code, interpret the results
 		// self.setDefaultPriority()
 
 		if debug {
-			print("LOW PULSES: \(lowpulse): \(lowPulseTimes)")
-			print("HIGHPULSES: \(highpulse): \(highPulseTimes)")			
+			print("LOW PULSE TIMINGS (\(lowpulse)): \(lowPulseTimes)")
+			print("HIGH PULSE TIMINGS (\(highpulse)): \(highPulseTimes)")			
 		}
+
+		guard highpulse >= 40 else { throw DHTError.InvalidNumberOfPulses }
 
 		// // Interpret each high pulse as a 0 or 1 by comparing it to the 50us reference.
   		// If the count is less than 50us it must be a ~28us 0 pulse, and if it's higher
   		// then it must be a ~70us 1 pulse.
   		let highSkip = highpulse - 40
   		var data = [UInt8](count:5, repeatedValue: 0)
-  		var bits = 0
   		var prevIndex = 0
   		for i in highSkip..<(40+highSkip) {
   			let index = (i-highSkip) / 8
   			data[index] <<= 1
   			if prevIndex != index {
-  				print(" ", terminator: "")
   				prevIndex = index
   			}
   			if highPulseTimes[i] >= 30 {
-  				print("1", terminator:"")
   				// One bit for long pulse
   				data[index] |= 1
-  			} else {
-  				print("0", terminator:"")
   			}
-  			bits = bits + 1
   			// else zero bit for short pulse
   		}
 
-  		print("")
+  		// checksum is UPPER 8 BITS of the sum of the other values
 		let computedChecksum = (Int(data[0]) + Int(data[1]) + Int(data[2]) + Int(data[3])) & 0xFF
   		if debug {
-			print("Verifying checksum...")
-			print("4:\(data[4]) = 0:\(data[0]) + 1:\(data[1]) + 2:\(data[2]) + 3:\(data[3])")
-			print("Checksum: \(String(computedChecksum, radix:2))")
+			print("Computed checksum: \(self.binaryStringForNumber(computedChecksum))(\(computedChecksum)) = (\(self.binaryStringForNumber(data[0]))(\(data[0])) + \(self.binaryStringForNumber(data[1]))(\(data[1])) + \(self.binaryStringForNumber(data[2]))(\(data[2])) + \(self.binaryStringForNumber(data[3]))(\(data[3]))) & 0xFF")
+			print("  Actual checksum: \(self.binaryStringForNumber(data[4]))(\(data[4]))")
 		}
 
   		// Verify checksum of received data
@@ -155,6 +164,8 @@ public class DHT {
   		} else {
   			throw DHTError.InvalidChecksum
   		}
+
+		if debug { print("----------------------------------")}
 
 		return (temperature,humidity)
 	}
