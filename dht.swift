@@ -109,11 +109,13 @@ public class DHT {
 			}
 		}
 
-		// HACK
-		highPulseTimes[0] = 0
-
 		// Done with timing code, interpret the results
 		// self.setDefaultPriority()
+
+		// This is a big hack -- if the timings are off, and i only get 40 pulses, I know the first one is low -- so regardless set it
+		// this helps us get better results -- but yeah...super hack
+		highPulseTimes[0] = 0
+
 
 		if debug {
 			print("LOW PULSE TIMINGS (\(lowpulse)): \(lowPulseTimes)")
