@@ -5,11 +5,10 @@
 <p>
 <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux-only" />
 <a href="https://developer.apple.com/swift"><img src="https://img.shields.io/badge/swift2-compatible-4BC51D.svg?style=flat" alt="Swift 2 compatible" /></a>
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
+<a href="https://raw.githubusercontent.com/pj4533/dhtxx/master/LICENSE">![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)</a>
 </p>
  
-![DHT]()
-
+![DHT](dhtxx.jpg)
 
 #Summary
 
