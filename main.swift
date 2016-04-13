@@ -7,39 +7,41 @@ func initLCD() -> HD44780LCD {
 	return lcd	
 }
 
-	let gpios = SwiftyGPIO.getGPIOsForBoard(.RaspberryPiRev2)
-
+	let gpios = SwiftyGPIO.getGPIOsForBoard(.RaspberryPiRev2)	
 	let lcd = initLCD()
 	lcd.clearScreen()
 	lcd.cursorHome()
 
 	let dht = DHT(pin: gpios[.P4]!)
 
+	var temperature = 0.0
+	var humidity = 0.0
+
+	// samples every 5s, outputs last good temp/humidty & the # of seconds since last good reading
+	var startTime:timeval = timeval(tv_sec: 0, tv_usec: 0)
+	var endTime:timeval = timeval(tv_sec: 0, tv_usec: 0)			
+
+    gettimeofday(&startTime,nil)
 	while (true) {
-		lcd.clearScreen()
-		lcd.cursorHome()
-		lcd.printString(0,y:0,what:"Reading...",usCharSet:true)
 		do {
-			let (temperature,humidity) = try dht.read(true)
-			lcd.clearScreen()
-			lcd.cursorHome()
+			(temperature,humidity) = try dht.read(true)
+		    gettimeofday(&startTime,nil)
 			print("temp: \(temperature)  hum: \(humidity)")
-			lcd.printString(0,y:0,what:"Temp: \(temperature)",usCharSet:true)
-			lcd.printString(0,y:1,what:"Humidity: \(humidity)",usCharSet:true)
 		} catch (DHTError.InvalidNumberOfPulses) {
 			let errorMessage = "INVALID PULSES"
-			lcd.clearScreen()
-			lcd.cursorHome()
-			lcd.printString(0,y:0,what:errorMessage,usCharSet:true)
 			print(errorMessage)
 		} catch (DHTError.InvalidChecksum) {
 			let errorMessage = "INVALID CHECKSUM"
-			lcd.clearScreen()
-			lcd.cursorHome()
-			lcd.printString(0,y:0,what:errorMessage,usCharSet:true)
 			print(errorMessage)
 		}
+
+		gettimeofday(&endTime,nil)
+
+		lcd.clearScreen()
+		lcd.cursorHome()
+		lcd.printString(0,y:0,what:"Temp: \(temperature) \(endTime.tv_sec - startTime.tv_sec)s",usCharSet:true)
+		lcd.printString(0,y:1,what:"Humidity: \(humidity)",usCharSet:true)			
 	
-		sleep(10)		
+		sleep(5)		
 	}
 

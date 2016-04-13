@@ -16,8 +16,10 @@ public class DHT {
 	func setMaxPriority() {
 		var sched: sched_param = sched_param()
   		// Use FIFO scheduler with highest priority for the lowest chance of the kernel context switching.
-  		sched.__sched_priority = 99//sched_get_priority_max(SCHED_FIFO)
-  		sched_setscheduler(0, SCHED_FIFO, &sched)		
+  		sched.__sched_priority = sched_get_priority_max(SCHED_FIFO)
+  		if (sched_setscheduler(0, SCHED_FIFO, &sched) != 0) {
+  			print("ERROR")
+  		}
 	}
 
 	func setDefaultPriority() {
@@ -26,7 +28,6 @@ public class DHT {
 		sched.__sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &sched)
 	}
-
 
 	func binaryStringForNumber(number: UInt8) -> String {
 		return self.binaryStringForNumber(Int(number))
@@ -74,12 +75,18 @@ public class DHT {
 		// but if i just left it low, then switched to input I could get the pulses
 		// -- usually.
 
-		// self.setMaxPriority()
+		// I did find marginally better results by bumping up the priority of the thread
+		// but only marginally, it still fails ALOT -- A. LOT.  Sampling every 5s I can
+		// usually get a good reading within the past 60s, many times more often than that
+		// but def not every time.  
+		self.setMaxPriority()
 
 		// Set pin low 
 		self.pin.value = 0
+
 		usleep(10000)
 
+		// see comment above
 		// self.pin.value = 1
 
 		// Set pin to in
@@ -89,9 +96,7 @@ public class DHT {
 		// timeouts -- i took a different approach and just spin in a for-loop
 		// constantly sampling the pin and comparing to the previous value.
 		// The end result is the same, but this way I'll never get stuck in a while-loop
-		// or have to mess with timeouts.
-
-
+		// or have to mess with timeouts -- and this just makes more sense to me
     	gettimeofday(&startTime,nil)
 		for _ in 0..<5000000 {
 			if self.pin.value != prevValue {
@@ -110,7 +115,7 @@ public class DHT {
 		}
 
 		// Done with timing code, interpret the results
-		// self.setDefaultPriority()
+		self.setDefaultPriority()
 
 		// This is a big hack -- if the timings are off, and i only get 40 pulses, I know the first one is low -- so regardless set it
 		// this helps us get better results -- but yeah...super hack
@@ -124,9 +129,11 @@ public class DHT {
 
 		guard highpulse >= 40 else { throw DHTError.InvalidNumberOfPulses }
 
-		// // Interpret each high pulse as a 0 or 1 by comparing it to the 50us reference.
-  		// If the count is less than 50us it must be a ~28us 0 pulse, and if it's higher
-  		// then it must be a ~70us 1 pulse.
+		//  Data sheet says 0bit pulses are ~28us, and 1bit pulses are ~70us
+		//
+		//  this stuff with 'highSkip', are accounting for when we actually get the pulses
+		//  during the startup signal.  Usually, this is missed, but the array size and
+		//  this offset account for that.   
   		let highSkip = highpulse - 40
   		var data = [UInt8](count:5, repeatedValue: 0)
   		var prevIndex = 0
