@@ -16,15 +16,28 @@ func initLCD() -> HD44780LCD {
 	let dht = DHT(pin: gpios[.P4]!)
 
 	while (true) {
+		lcd.clearScreen()
+		lcd.cursorHome()
+		lcd.printString(0,y:0,what:"Reading...",usCharSet:true)
 		do {
 			let (temperature,humidity) = try dht.read(true)
+			lcd.clearScreen()
+			lcd.cursorHome()
 			print("temp: \(temperature)  hum: \(humidity)")
 			lcd.printString(0,y:0,what:"Temp: \(temperature)",usCharSet:true)
 			lcd.printString(0,y:1,what:"Humidity: \(humidity)",usCharSet:true)
 		} catch (DHTError.InvalidNumberOfPulses) {
-			print("INVALID NUMBER OF PULSES -- try again")
+			let errorMessage = "INVALID PULSES"
+			lcd.clearScreen()
+			lcd.cursorHome()
+			lcd.printString(0,y:0,what:errorMessage,usCharSet:true)
+			print(errorMessage)
 		} catch (DHTError.InvalidChecksum) {
-			print("INVALID CHECKSUM -- try again")
+			let errorMessage = "INVALID CHECKSUM"
+			lcd.clearScreen()
+			lcd.cursorHome()
+			lcd.printString(0,y:0,what:errorMessage,usCharSet:true)
+			print(errorMessage)
 		}
 	
 		sleep(10)		
