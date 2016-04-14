@@ -36,7 +36,7 @@ As everything interacting with GPIOs via sysfs, if you are not already root, you
 
 In the following usage example i'll use a 20x2 LCD connected to a RaspberryPiRev2 with a AM2303 sensor.
 
-Details are in my blog post, but you should be able to run `dhttest` and the application will update the screen with the temp/humidity, when it can.
+Details are in my [blog post](http://saygoodnight.com/2016/04/13/swift-temperature-raspberrypi.html), but you should be able to run `dhttest` and the application will update the screen with the temp/humidity, when it can.
 
 ## TODO
 
