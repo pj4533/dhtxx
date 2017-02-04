@@ -12,7 +12,7 @@ let lcd = initLCD()
 lcd.clearScreen()
 lcd.cursorHome()
 
-let dht = DHT(pin: gpios[.P4]!)
+let dht = DHT(pin: gpios[.P4]!, for: .dht22)
 
 var temperature = 0.0
 var humidity = 0.0

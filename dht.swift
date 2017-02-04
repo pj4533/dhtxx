@@ -7,11 +7,18 @@ enum DHTError: Error {
 	case invalidChecksum
 }
 
+public enum SupportedSensor {
+	case dht11
+	case dht22
+}
+
 public class DHT {
 	private var pin: GPIO
+	private let sensor: SupportedSensor
 	
-	init(pin: GPIO) {
+	init(pin: GPIO, for sensor: SupportedSensor) {
 		self.pin = pin
+		self.sensor = sensor
 	}
 
 	func setMaxPriority() {
@@ -160,13 +167,15 @@ public class DHT {
 		
 		// Verify checksum of received data
 		if data[4] == UInt8(computedChecksum) {
-			// DHT11
-			// humidity = Double(data[0])
-			// temperature = Double(data[2])
-
-			// only doing DHT22 for now
-			humidity = ((Double(data[0]) * 256.0) + Double(data[1])) / 10.0
-			temperature = ((Double(data[2] & 0x7F) * 256.0) + Double(data[3])) / 10.0
+			switch sensor {
+			case .dht11:
+				humidity = Double(data[0])
+				temperature = Double(data[2])
+			default:
+				humidity = ((Double(data[0]) * 256.0) + Double(data[1])) / 10.0
+				temperature = ((Double(data[2] & 0x7F) * 256.0) + Double(data[3])) / 10.0
+			}
+			
 			if ((data[2] & 0x80) != 0) {
 				temperature = temperature * -1.0
 			}
